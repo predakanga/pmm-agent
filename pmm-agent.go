@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -11,13 +12,7 @@ import (
 )
 
 func main() {
-	app := &app.App{}
-	if err := app.Config.Read(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	if err := cmd.New(app).Execute(); err != nil {
+	if err := cmd.New(context.Background(), app.App{}).Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

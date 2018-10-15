@@ -37,6 +37,7 @@ func (s *Supervisor) Add(name string, p *program.Program) error {
 		return fmt.Errorf("program already exists: %s", name)
 	}
 
+	p.LogDir = s.LogDir
 	err := p.Start()
 	if err != nil {
 		return err

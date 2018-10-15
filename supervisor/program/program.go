@@ -23,6 +23,8 @@ type Program struct {
 	Arg []string
 	// Env is a list of environment variables.
 	Env []string
+	// LogDir
+	LogDir string
 
 	cmd     *exec.Cmd
 	outfile *os.File
@@ -107,7 +109,7 @@ func (p *Program) running() bool {
 }
 
 func (p *Program) run() (err error) {
-	f, err := os.Create(filepath.Join(fmt.Sprintf("pmm-%s.log", p.Program)))
+	f, err := os.Create(filepath.Join(p.LogDir, fmt.Sprintf("pmm-%s.log", p.Program)))
 	if err != nil {
 		return err
 	}

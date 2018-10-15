@@ -16,16 +16,16 @@ import (
 )
 
 // New returns app cmd.
-func New(app *app.App) *cobra.Command {
-	cmd := root.New(app)
+func New(serveCtx context.Context, app app.App) *cobra.Command {
+	cmd := root.New(&app)
 
 	cmd.AddCommand(
-		serve.New(context.Background(), app),
-		add.New(app),
-		remove.New(app),
-		start.New(app),
-		stop.New(app),
-		list.New(app),
+		serve.New(serveCtx, &app),
+		add.New(&app),
+		remove.New(&app),
+		start.New(&app),
+		stop.New(&app),
+		list.New(&app),
 	)
 
 	return cmd

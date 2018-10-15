@@ -10,20 +10,26 @@ import (
 
 	"github.com/percona/pmm-agent/api"
 	"github.com/percona/pmm-agent/app"
-	"github.com/percona/pmm-agent/cmd/serve"
 )
 
 func TestList(t *testing.T) {
 	t.Parallel()
 
+	serveCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// Run app.
 	{
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		go func() {
-			cmd := serve.New(ctx, &app.App{})
-			err := cmd.Execute()
-			assert.NoError(t, err)
+			rootCmd := New(serveCtx, app.App{})
+			rootCmd.SetArgs([]string{
+				"--config", "testdata/.pmm-agent.yml",
+				"serve",
+			})
+			buf := &bytes.Buffer{}
+			rootCmd.SetOutput(buf)
+			assert.NoError(t, rootCmd.Execute())
+			assert.Equal(t, "", buf.String())
 		}()
 	}
 
@@ -31,8 +37,9 @@ func TestList(t *testing.T) {
 
 	// Initial list should be empty.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list",
 		})
 		buf = &bytes.Buffer{}
@@ -43,8 +50,9 @@ func TestList(t *testing.T) {
 
 	// Add new program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"add", "mysql-1", "--env", "DATA_SOURCE_NAME=root@/", "--", "mysqld_exporter", "--collect.all",
 		})
 		buf = &bytes.Buffer{}
@@ -55,8 +63,9 @@ func TestList(t *testing.T) {
 
 	// List now should contain new program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list", "--json",
 		})
 		buf = &bytes.Buffer{}
@@ -94,8 +103,9 @@ func TestList(t *testing.T) {
 
 	// Stop program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"stop", "mysql-1",
 		})
 		buf = &bytes.Buffer{}
@@ -106,8 +116,9 @@ func TestList(t *testing.T) {
 
 	// List now should contain stopped program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list", "--json",
 		})
 		buf = &bytes.Buffer{}
@@ -146,8 +157,9 @@ func TestList(t *testing.T) {
 
 	// Start program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"start", "mysql-1",
 		})
 		buf = &bytes.Buffer{}
@@ -158,8 +170,9 @@ func TestList(t *testing.T) {
 
 	// List now should contain started program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list", "--json",
 		})
 		buf = &bytes.Buffer{}
@@ -197,8 +210,9 @@ func TestList(t *testing.T) {
 
 	// Add another new program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"add", "mysql-2", "--env", "DATA_SOURCE_NAME=root@/", "--",
 			"mysqld_exporter",
 			"--collect.all",
@@ -212,8 +226,9 @@ func TestList(t *testing.T) {
 
 	// List now should contain started programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list", "--json",
 		})
 		buf = &bytes.Buffer{}
@@ -264,8 +279,9 @@ func TestList(t *testing.T) {
 
 	// Stop programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"stop", "mysql-1", "mysql-2",
 		})
 		buf = &bytes.Buffer{}
@@ -276,8 +292,9 @@ func TestList(t *testing.T) {
 
 	// Start programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"start", "mysql-1", "mysql-2",
 		})
 		buf = &bytes.Buffer{}
@@ -288,8 +305,9 @@ func TestList(t *testing.T) {
 
 	// Stop all programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"stop",
 		})
 		buf = &bytes.Buffer{}
@@ -300,8 +318,9 @@ func TestList(t *testing.T) {
 
 	// Start all programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"start",
 		})
 		buf = &bytes.Buffer{}
@@ -312,8 +331,9 @@ func TestList(t *testing.T) {
 
 	// Remove program.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"remove", "mysql-1",
 		})
 		buf = &bytes.Buffer{}
@@ -324,8 +344,9 @@ func TestList(t *testing.T) {
 
 	// Remove all programs.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"remove",
 		})
 		buf = &bytes.Buffer{}
@@ -336,8 +357,9 @@ func TestList(t *testing.T) {
 
 	// List should be empty again.
 	{
-		rootCmd := New(&app.App{})
+		rootCmd := New(serveCtx, app.App{})
 		rootCmd.SetArgs([]string{
+			"--config", "testdata/.pmm-agent.yml",
 			"list",
 		})
 		buf = &bytes.Buffer{}
