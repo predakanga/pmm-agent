@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"unicode/utf8"
 
 	_ "github.com/go-sql-driver/mysql" // register SQL driver
 	"github.com/percona/go-mysql/event"
@@ -382,7 +383,7 @@ func makeBuckets(agentID string, res event.Result, periodStart time.Time, period
 			Mysql: &agentpb.MetricsBucket_MySQL{},
 		}
 
-		if v.Example != nil && !disableQueryExamples {
+		if v.Example != nil && !disableQueryExamples && utf8.ValidString(v.Example.Query) {
 			mb.Common.Example = v.Example.Query
 			mb.Common.ExampleFormat = agentpb.ExampleFormat_EXAMPLE
 			mb.Common.ExampleType = agentpb.ExampleType_RANDOM
